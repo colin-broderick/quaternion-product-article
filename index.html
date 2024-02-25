@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+
+<head>
+    <link rel="stylesheet" href="css/css.css">
+    <script src="js/js.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body>
+    <article>
+        <h1 class="centre-align">Deriving the quaternion product</h1>
+        <h2>Introduction</h2>
+        <p>I spent a little time this week getting to grips with quaternions in order to better understand some
+            orientation filters I was using at work. I had worked with quaternions before but never had the time to
+            fully digest them and understand them deeply. That's not a position I like to be in as someone who thinks of
+            themselves as a mathematician; using a mathematical tool without understanding it is iffy at the best of
+            times, and I'm a big believer in learning for it's own sake anyway.</p>
+        <p>Sure enough, my limited understanding led to a few simple tasks taking a lot longer than they should have. In
+            the end I spent a morning reading (ok, skimming) a 150-page book on quaternions, following a few worked
+            examples, proving a few theorems and properties, and felt much better about them.</p>
+        <p>I decided to write up what I learned, and write a small library to do the work, in order to further cement
+            and test my understanding. That work is presented here. I'll start with</p>
+        <ul>
+            <li>a defintion of quaternions,</li>
+            <li>deriving the quaternion product.</li>
+        </ul>
+        <p>In later articles I will discuss the creation of the C++ header-only quaternion library, and talk about the
+            main practical use of quaternions: 3D rotations.</p>
+        <h2>Quaternions</h2>
+        <h3>Quaternion definition</h3>
+        <p>Quaternions are an extension of the real numbers which introduces two new imaginary numbers, called j and k.
+            These numbers are imaginary in the sense that they have the property \(\mathbf{j}^2 = -1, \mathbf{k}^2 =
+            -1\), but they are not equal to the more familiar imaginary number \(\mathbf{i}\). The usual set of
+            statements that define these numbers is as follows:</p>
+        <div class="eq">
+            $$
+            \begin{align}
+            &\mathbf{i}^2=\mathbf{j}^2=\mathbf{k}^2=\mathbf{ijk}=-1,\\[1em]
+            &\mathbf{ij}=\mathbf k,\quad\mathbf{jk}=\mathbf i,\quad\mathbf{ki}=\mathbf j.
+            \end{align}
+            $$
+        </div>
+        <p>Quaternions in general are non-commutative, and in particular the products in equation 2 are in fact
+            anti-commutative. This means that \(\mathbf{ij} = \mathbf k\) implies \(\mathbf{ji} = -\mathbf k\).</p>
+        <p>A quaternion, then, is an element in a four-dimensional space where the standard basis vectors are the set
+            \(\{1, \mathbf i, \mathbf j, \mathbf k\}\). In this document I will usually use the Cartesian notation which
+            is exactly analogous to the Cartesian form of complex numbers. In this notation, a quaternion is given by
+        </p>
+        <div class="eq">
+            $$
+            \begin{equation}
+            q = q_0+q_1\mathbf i+q_2\mathbf j+q_3\mathbf k.
+            \end{equation}
+            $$
+        </div>
+        <p>\(q_0\) may be called the real part or the scalar part of the quaternion, and the other elements taken
+            together may be called the imaginary part or the vector part. A pure quaternion is one where the real part
+            is equal to zero, and the identity quaternion has scalar part \(1\) and vector part \(\mathbf 0\).</p>
+        <h3>Defining the quaternion product</h3>
+        <p>Using the Cartesian form for quaternions, let's define two quaternions, \(p\) and \(q\), such that</p>
+        <div class="eq">
+            $$
+            \begin{align}
+            p&=p_0+p_1\mathbf i+p_2\mathbf j+p_3\mathbf k,\\[1em]
+            q&=q_0+q_1\mathbf i+q_2\mathbf j+q_3\mathbf k.
+            \end{align}
+            $$
+        </div>
+        <p>On the assumption that multiplication is distributive over addition, we can expand the product \(pq\) to give
+        </p>
+        <div class="eq">
+            $$
+            \begin{align}
+            \nonumber pq &= \left(p_0+p_1\mathbf i+p_2\mathbf j+p_3\mathbf k\right)\left(q_0+q_1\mathbf i+q_2\mathbf
+            j+q_3\mathbf k\right)\\[1em]
+            \notag &= p_0q_0+p_0q_1\mathbf i+p_0q_2\mathbf j+p_0q_3\mathbf k \\[1em]
+            \notag &\quad +\ p_1q_0\mathbf i + p_1q_1\mathbf i^2+p_1q_2\mathbf i\mathbf j + p_1q_3\mathbf i\mathbf
+            k\\[1em]
+            \notag &\quad +\ p_2q_0\mathbf j + p_2q_1\mathbf j\mathbf i + p_2q_2\mathbf j^2 + p_2q_3\mathbf j\mathbf
+            k\\[1em]
+            &\quad +\ p_3q_0\mathbf k + p_3q_1\mathbf k\mathbf i + p_3q_1\mathbf k\mathbf j + p_3q_3 \mathbf k^2.
+            \end{align}
+            $$
+        </div>
+        <p>Using our definition statement in equations 1 and 2 we can simplify this rather lengthy expression
+            byreplacing imaginary squares with \(-1\), and products of different imaginary numbers with the single
+            imaginary number they correspond to according to equation 2. We also group all terms involving \( \mathbf
+            i\) together, and likewise for \(\mathbf j\) and \(\mathbf k\).</p>
+        <div class="eq">
+            $$
+            \begin{align}
+            \notag pq &= p_0q_0 - p_1q_1 - p_2q_2 - p_3q_3\\[1em]
+            \notag &\quad +\ \mathbf i\left( p_0q_1 + p_1q_0 + p_2q_3 - p_3q_2 \right)\\[1em]
+            \notag &\quad +\ \mathbf j\left( p_0q_2 - p_1q_3 + p_2q_0 + p_3q_1 \right)\\[1em]
+            &\quad +\ \mathbf k\left( p_0q_3 + p_1q_2 - p_2q_1 + p_3q_0 \right)
+            \end{align}
+            $$
+        </div>
+        <p>From here on we can forget about the imaginary nature of \(\mathbf i, \mathbf j, \mathbf k\) and treat them
+            simply as unit basis vectors in the four-dimensional quaternion space. The computer scientists among you may
+            like to stop here, as this is the most conveniently-computable form of the product. For the mathematicians,
+            it should be easy to convince yourself that the first line is just</p>
+        <div class="eq">
+            $$
+            \begin{equation}
+            p_0q_0 - \mathbf p\cdot\mathbf q,
+            \end{equation}
+            $$
+        </div>
+        <p>where \(\mathbf p\) is the vector part of \(p\) and \(\mathbf q\) is the vector part of \(q\). So</p>
+        <div class="eq">
+            $$
+            \begin{align}
+            \notag pq &= p_0q_0 - \mathbf p\cdot\mathbf q\\[1em]
+            \notag &\quad +\ \mathbf i\left( p_0q_1 + p_1q_0 + p_2q_3 - p_3q_2 \right)\\[1em]
+            \notag &\quad +\ \mathbf j\left( p_0q_2 - p_1q_3 + p_2q_0 + p_3q_1 \right)\\[1em]
+            \label{quaternion-with-dot} &\quad +\ \mathbf k\left( p_0q_3 + p_1q_2 - p_2q_1 + p_3q_0 \right)
+            \end{align}
+            $$
+        </div>
+        <p>It's not quite as obvious how the remaining parts can be simplified, but those of you who have done enough
+            linear algebra can probably sense a cross product trying to break out. Let's work out the cross product of
+            two 3-vectors \(p\) and \(q\), and see if we can shake it loose.</p>
+        <div class="eq">
+            $$
+            \begin{align}
+            \nonumber\mathbf p\times\mathbf q &= \left|\begin{matrix}
+            \mathbf i & \mathbf j & \mathbf k \\ p_1 & p_2 & p_3 \\ q_1 & q_2 & q_3
+            \end{matrix}\right| \\[1em]
+            &=
+            \mathbf i\left( p_2q_3 - p_3q_2 \right)
+            -\mathbf j\left( p_1q_3 - p_3q_1 \right)
+            +\mathbf k\left( p_1q_2 - p_2q_1 \right).
+            \end{align}
+            $$
+        </div>
+        <p>Now that we have it here for comparison, we can see that the cross product is indeed present in equation 7,
+            but it doesn't account for all the terms. Let's write it in and see what we're left with.</p>
+        <div class="eq">
+            $$
+            \begin{align}
+            \nonumber pq &= p_0q_0 - \mathbf p\cdot\mathbf q + \mathbf p\times\mathbf q \\[1em]
+            \nonumber &\quad +\ \mathbf i\left( p_0q_1 + p_1q_0\right) \\[1em]
+            \nonumber &\quad +\ \mathbf j\left( p_0q_2 + p_2q_0 \right) \\[1em]
+            &\quad +\ \mathbf k\left( p_0q_3 + p_3q_0 \right)
+            \end{align}
+            $$
+        </div>
+        <p>By collecting together all the terms containing \(p_0\), and all the terms containing \(q_0\), we can see
+            that we have a term \(p_0q = p_0(q_1\mathbf i+q_2\mathbf j+q_3 \mathbf k)\), and a similar term q₀p.
+            Therefore we can write what remains as a couple of scalar multiples of the vector parts of our quaternions.
+            This is the result:</p>
+        <div class="eq">
+            $$
+            \begin{align}
+            pq &= p_0q_0 - \mathbf p\cdot\mathbf q + \mathbf p\times\mathbf q
+            + p_0\mathbf q + q_0 \mathbf p.
+            \end{align}
+            $$
+        </div>
+        <p>This is about the best we can do, and it is the canonical quaternion product. You're probably not looking
+            forward to doing any quaternion calculations by hand, and that's pretty reasonable of you. If you're like me
+            you're probably having flashbacks to inverting a 4x4 matrix, or something along those lines. Luckily there
+            aren't really any contexts outside of education where you'd ever need to do this by hand. The most common
+            use of quaternions is in computing 3D rotations in computer graphics, or in electromechanical settings where
+            you need to track the orientation of something in 3-dimensional space. In both of those situations you will
+            certainlybe using a computer to do all the calculating.</p>
+        <h3>Visual multiplication</h3>
+        <p>If you'd like a more visual way to follow the terms through this multiplication, consider the following
+            table.</p>
+        <table class="quaternion-product">
+            <tr>
+                <td>\(\times\)</td>
+                <td>\(p_0\)</td>
+                <td>\(p_1\mathbf i\)</td>
+                <td>\(p_2\mathbf j\)</td>
+                <td>\(p_3\mathbf k\)</td>
+            </tr>
+            <tr>
+                <td>\(q_0\)</td>
+                <td class="grey">\(p_0q_0\)</td>
+                <td class="blue1">\(p_1q_0\mathbf i\)</td>
+                <td class="blue1">\(p_2q_0\mathbf j\)</td>
+                <td class="blue1">\(p_3q_0\mathbf k\)</td>
+            </tr>
+            <tr>
+                <td>\(q_1\mathbf i\)</td>
+                <td class="blue2">\(p_0q_1\mathbf i\)</td>
+                <td class="red">\(-p_1q_1\)</td>
+                <td class="green1">\(-p_2q_1\mathbf k\)</td>
+                <td class="green2">\(p_3q_1\mathbf j\)</td>
+            </tr>
+            <tr>
+                <td>\(q_2\mathbf j\)</td>
+                <td class="blue2">\(p_0q_2\mathbf j\)</td>
+                <td class="green1">\(p_1q_2\mathbf k\)</td>
+                <td class="red">\(-p_2q_2\)</td>
+                <td class="green3">\(-p_3q_2\mathbf i\)</td>
+            </tr>
+            <tr>
+                <td>\(q_3\mathbf k\)</td>
+                <td class="blue2">\(p_0q_3\mathbf k\)</td>
+                <td class="green2">\(-p_1q_3\mathbf j\)</td>
+                <td class="green3">\(p_2q_3\mathbf i\)</td>
+                <td class="red">\(-p_3q_3\)</td>
+            </tr>
+        </table>
+        <p>The blue shaded regions are \(p_0q\) and \(q_0p\). The red region is \(-\mathbf p\cdot \mathbf q\). The three
+            green regions are the three terms of the cross product \(p\times q\). The grey region is the remaining
+            scalar term p₀q₀. The sum of all these regions is the full quaternion product. The algebra might have made
+            it seem like some terms came out of nowhere, but hopefully the table helps convince you there's no magic
+            involved.</p>
+        <h3>Quaternions for rotation</h3>
+        <p>If you're here at all, you're almost certainly aware that the main practical use of quaternions is for
+            computing 3D rotations without having to fight the limitations of Euler angles. I will be discussing
+            rotations in another article.</p>
+        <h3>C++ quaternion library</h3>
+        <p>As part of my journey to understand quaternions, I wrote a header-only C++ library which you can find here:
+        </p>
+        <p>Code redacted; IP acquired by employer.</p>
+    </article>
+</body>
+
+</html>

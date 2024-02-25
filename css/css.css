@@ -1,0 +1,62 @@
+body {
+    width: 700px;
+    margin: auto;
+}
+
+article {
+    line-height: 200%;
+}
+
+li {
+    text-align: justify;
+}
+
+p {
+    font-family: Georgia, serif;
+    text-align: justify;
+}
+
+.red {
+    background-color: #ffbdaf;
+}
+
+.blue1 {
+    background-color: #88aed0;
+}
+
+.blue2 {
+    background-color: #aecbd6;
+}
+
+.green1 {
+    background-color: #94fa92;
+}
+
+.green2 {
+    background-color: #ceffc9;
+}
+
+.green3 {
+    background-color: #b0ffad;
+}
+
+.grey {
+    background-color: #eeeeee;
+}
+
+.quaternion-product td {
+    text-align: center;
+    padding: 15px 20px 15px 20px;
+}
+
+.table-code td {
+    vertical-align: top;
+}
+
+table {
+    margin: auto;
+}
+
+.centre-align {
+    text-align: center;
+}
